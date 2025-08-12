@@ -17,21 +17,28 @@ export const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate form
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+      return;
+    }
+
     try {
+      console.log('Sending email with data:', formData);
       // EmailJS configuration
-      const serviceId = 'service_i21zhjn';
+      const serviceId = 'service_kjb83pi'; // SMTP service ใหม่
       const templateId = 'template_iqmfhie';
       const publicKey = 'gq115VBsHnV0XkAE6';
 
       const templateParams = {
-        from_name: formData.name,
-        from_email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-        to_email: 'athit.wanc@gmail.com'
+        name: formData.name,
+        email: formData.email,
+        title: formData.subject,
+        message: formData.message
       };
 
-      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      const result = await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      console.log('EmailJS result:', result);
 
       alert('ส่งข้อความสำเร็จ! ผมจะตอบกลับเร็วๆ นี้ครับ');
       setFormData({ name: "", email: "", subject: "", message: "" });
@@ -56,7 +63,7 @@ export const Contact = () => {
       icon: Mail,
       title: "Email",
       value: "athit.wanc@gmail.com",
-      link: "athit.wanc@gmail.com",
+      link: "mailto:athit.wanc@gmail.com",
     },
     {
       icon: Phone,
@@ -67,8 +74,8 @@ export const Contact = () => {
     {
       icon: MapPin,
       title: "ที่อยู่",
-      value: "ปทุมธานี, ประเทศไทย",
-      link: "#",
+      value: "37/3430 หมู่บ้านพฤกษา13 ต.คลองสาม อ.คลอวหลวง จ.ปทุมธานี, ประเทศไทย",
+      link: null,
     },
   ];
 
@@ -96,15 +103,10 @@ export const Contact = () => {
   return (
     <section id="contact" className="py-20 bg-muted/20">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            ช่องทางการติดต่อ
-          </h2>
-        </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Contact Form */}
-          <Card className="p-8 bg-gradient-card border-border/50">
+        <div className="grid lg:grid-cols-1 gap-12 max-w-4xl mx-auto">
+          {/* Contact Form - Hidden temporarily */}
+          {/* <Card className="p-8 bg-gradient-card border-border/50">
             <h3 className="text-2xl font-semibold mb-6 text-foreground">
               ส่งข้อความ
             </h3>
@@ -196,34 +198,42 @@ export const Contact = () => {
                 ส่งข้อความ
               </Button>
             </form>
-          </Card>
+          </Card> */}
 
           {/* Contact Information */}
-          <div className="space-y-8">
+          <div className="space-y-8 text-center">
             <div>
               <h3 className="text-2xl font-semibold mb-6 text-foreground">
                 ข้อมูลติดต่อ
               </h3>
               <div className="space-y-4">
-                {contactInfo.map((info, index) => (
-                  <a
-                    key={index}
-                    href={info.link}
-                    className="flex items-center gap-4 p-4 bg-card/50 rounded-lg border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <info.icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {info.title}
-                      </p>
-                      <p className="text-muted-foreground group-hover:text-foreground transition-colors">
-                        {info.value}
-                      </p>
-                    </div>
-                  </a>
-                ))}
+                {contactInfo.map((info, index) => {
+                  const Component = info.link ? 'a' : 'div';
+                  const linkProps = info.link ? { href: info.link } : {};
+
+                  return (
+                    <Component
+                      key={index}
+                      {...linkProps}
+                      className={`flex items-center gap-4 p-4 bg-card/50 rounded-lg border border-border/30 transition-all duration-300 group ${info.link
+                        ? 'hover:border-primary/30 hover:bg-primary/5 cursor-pointer'
+                        : 'cursor-default'
+                        }`}
+                    >
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <info.icon className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {info.title}
+                        </p>
+                        <p className="text-muted-foreground group-hover:text-foreground transition-colors">
+                          {info.value}
+                        </p>
+                      </div>
+                    </Component>
+                  );
+                })}
               </div>
             </div>
 
