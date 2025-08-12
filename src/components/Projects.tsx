@@ -5,6 +5,17 @@ import { ExternalLink, Github, Code, Smartphone, Globe } from "lucide-react";
 export const Projects = () => {
      const projects = [
           {
+               title: "Enterprise Dashboard System",
+               description: "ระบบแดชบอร์ดสำหรับจัดการข้อมูลองค์กร พัฒนา UI/UX และเชื่อมต่อ API Backend",
+               image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2015&q=80",
+               technologies: ["React", "TypeScript", "Tailwind CSS", "REST API"],
+               features: ["Real-time Data Visualization", "User Management", "Responsive Design", "API Integration"],
+               demoUrl: "#",
+               codeUrl: "#",
+               category: "Enterprise",
+               isConfidential: true
+          },
+          {
                title: "room-booking",
                description: "เว็บไซต์จองห้องพัก",
                image: "./1754993083591.jpg",
@@ -12,7 +23,7 @@ export const Projects = () => {
                features: ["Responsive Design", "Admin Dashboard"],
                demoUrl: "https://room-booking-three-xi.vercel.app/",
                codeUrl: "https://github.com/AthitWanchai/room-booking",
-               category: "Web App frontend"
+               category: "Web App"
 
           },
           {
@@ -23,7 +34,7 @@ export const Projects = () => {
                features: ["Responsive Design"],
                demoUrl: "https://athitwanchai.github.io/",
                codeUrl: "https://github.com/AthitWanchai/AthitWanchai.gitHub.io",
-               category: "Web App"
+               category: "Web Design"
           },
           {
                title: "Online-Courses-Website",
@@ -39,12 +50,14 @@ export const Projects = () => {
 
      const getCategoryIcon = (category: string) => {
           switch (category) {
-               case "Full-Stack":
+               case "Enterprise":
                     return Globe;
                case "Web App":
                     return Code;
                case "Frontend":
                     return Smartphone;
+               case "Web Design":
+                    return Code;
                default:
                     return Code;
           }
@@ -120,27 +133,36 @@ export const Projects = () => {
 
                                         {/* Action Buttons */}
                                         <div className="flex gap-3">
-                                             <Button
-                                                  size="sm"
-                                                  className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
-                                                  asChild
-                                             >
-                                                  <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
-                                                       <ExternalLink className="w-4 h-4 mr-2" />
-                                                       Demo
-                                                  </a>
-                                             </Button>
-                                             <Button
-                                                  variant="outline"
-                                                  size="sm"
-                                                  className="border-primary/30 hover:bg-primary/10"
-                                                  asChild
-                                             >
-                                                  <a href={project.codeUrl} target="_blank" rel="noopener noreferrer">
-                                                       <Github className="w-4 h-4 mr-2" />
-                                                       Code
-                                                  </a>
-                                             </Button>
+                                             {project.isConfidential ? (
+                                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                       <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                       <span>งานของบริษัท - ไม่สามารถแสดงโค้ดได้</span>
+                                                  </div>
+                                             ) : (
+                                                  <>
+                                                       <Button
+                                                            size="sm"
+                                                            className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
+                                                            asChild
+                                                       >
+                                                            <a href={project.demoUrl} target="_blank" rel="noopener noreferrer">
+                                                                 <ExternalLink className="w-4 h-4 mr-2" />
+                                                                 Demo
+                                                            </a>
+                                                       </Button>
+                                                       <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="border-primary/30 hover:bg-primary/10"
+                                                            asChild
+                                                       >
+                                                            <a href={project.codeUrl} target="_blank" rel="noopener noreferrer">
+                                                                 <Github className="w-4 h-4 mr-2" />
+                                                                 Code
+                                                            </a>
+                                                       </Button>
+                                                  </>
+                                             )}
                                         </div>
                                    </div>
                               </Card>
