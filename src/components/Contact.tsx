@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Send, Github, Linkedin } from "lucide-react";
 import { useState } from "react";
+import emailjs from '@emailjs/browser';
 
 export const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,12 +14,32 @@ export const Contact = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log("Form submitted:", formData);
-    // Reset form
-    setFormData({ name: "", email: "", subject: "", message: "" });
+
+    try {
+      // EmailJS configuration
+      const serviceId = 'service_i21zhjn';
+      const templateId = 'template_iqmfhie';
+      const publicKey = 'gq115VBsHnV0XkAE6';
+
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        to_email: 'athit.wanc@gmail.com'
+      };
+
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+
+      alert('ส่งข้อความสำเร็จ! ผมจะตอบกลับเร็วๆ นี้ครับ');
+      setFormData({ name: "", email: "", subject: "", message: "" });
+
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+    }
   };
 
   const handleChange = (
@@ -143,7 +164,7 @@ export const Contact = () => {
                   value={formData.subject}
                   onChange={handleChange}
                   className="bg-background/50 border-border focus:border-primary"
-                  // placeholder="เรื่องที่ต้องการปรึกษา"
+                // placeholder="เรื่องที่ต้องการปรึกษา"
                 />
               </div>
 
@@ -162,7 +183,7 @@ export const Contact = () => {
                   value={formData.message}
                   onChange={handleChange}
                   className="bg-background/50 border-border focus:border-primary resize-none"
-                  // placeholder="เล่ารายละเอียดเกี่ยวกับโปรเจกต์หรือสิ่งที่ต้องการปรึกษา..."
+                // placeholder="เล่ารายละเอียดเกี่ยวกับโปรเจกต์หรือสิ่งที่ต้องการปรึกษา..."
                 />
               </div>
 
