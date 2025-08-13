@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import { Code, Coffee, Lightbulb, Target } from "lucide-react";
 
 export const About = () => {
@@ -6,23 +5,26 @@ export const About = () => {
     {
       icon: Code,
       title: "Clean Code",
-      description: "เขียนโค้ดที่อ่านง่าย บำรุงรักษาได้ และทำงานได้อย่างมีประสิทธิภาพ"
+      description:
+        "เขียนโค้ดที่อ่านง่าย บำรุงรักษาได้ และทำงานได้อย่างมีประสิทธิภาพ",
     },
     {
       icon: Lightbulb,
       title: "Creative Solutions",
-      description: "หาทางออกที่สร้างสรรค์สำหรับปัญหาทางเทคนิคและ UX ที่ซับซ้อน"
+      description: "หาทางออกที่สร้างสรรค์สำหรับปัญหาทางเทคนิคและ UX ที่ซับซ้อน",
     },
     {
       icon: Target,
       title: "User-Focused",
-      description: "มุ่งเน้นสร้างประสบการณ์ผู้ใช้ที่ดีและตอบโจทย์ความต้องการจริง"
+      description:
+        "มุ่งเน้นสร้างประสบการณ์ผู้ใช้ที่ดีและตอบโจทย์ความต้องการจริง",
     },
     {
       icon: Coffee,
       title: "Continuous Learning",
-      description: "เรียนรู้เทคโนโลยีใหม่ๆ อย่างต่อเนื่องเพื่อให้ทันต่อการเปลี่ยนแปลง"
-    }
+      description:
+        "เรียนรู้เทคโนโลยีใหม่ๆ อย่างต่อเนื่องเพื่อให้ทันต่อการเปลี่ยนแปลง",
+    },
   ];
 
   return (
@@ -38,14 +40,20 @@ export const About = () => {
           {/* Text Content */}
           <div className="space-y-6">
             <p className="text-lg leading-relaxed text-foreground">
-              สวัสดีครับ ผม อาทิตย์ วรรณชัย เป็น Frontend Developer ที่ทำงานที่บริษัท HUGCODE CO.,LTD.
-              ตั้งแต่เดือนพฤศจิกายน 2023 ถึงปัจจุบัน ผมมีประสบการณ์ในการพัฒนาเว็บแอปพลิเคชันด้วย React, TypeScript
-              และเทคโนโลยีสมัยใหม่อื่นๆ
+              สวัสดีครับ ผม อาทิตย์ วรรณชัย เป็น Frontend Developer
+              ที่ทำงานที่บริษัท HUGCODE CO.,LTD. ตั้งแต่เดือนพฤศจิกายน 2024
+              ถึงปัจจุบัน ผมมีประสบการณ์ในการพัฒนาเว็บแอปพลิเคชันด้วย React,
+              TypeScript และเทคโนโลยีสมัยใหม่อื่นๆ
             </p>
 
-
             <div className="flex flex-wrap gap-3 pt-4">
-              {["React", "TypeScript", "Next.js", "Tailwind CSS", "Node.js"].map((tech) => (
+              {[
+                "React",
+                "TypeScript",
+                "Next.js",
+                "Tailwind CSS",
+                "Node.js",
+              ].map((tech) => (
                 <span
                   key={tech}
                   className="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20"
