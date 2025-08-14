@@ -1,68 +1,127 @@
 pipeline {
   agent any
-  options { timestamps() }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '10'))
+    disableConcurrentBuilds()
+  }
+
+  parameters {
+    choice(name: 'ENV', choices: ['uat','prod'], description: 'Target environment')
+    string(name: 'NOTES', defaultValue: '', description: 'Optional notes')
+  }
 
   environment {
-    // โฟลเดอร์ปลายทางภายในคอนเทนเนอร์
-    // บนเครื่องคุณจะเห็นที่ E:\Learn\Deploy\output ถ้าคุณแมพ jenkins_home มาที่ E:\Learn\Deploy
-    OUTPUT_DIR = 'E:/Learn/Deploy'
-    BUN_BIN    = "$HOME/.bun/bin"
-    BUN_INSTALL = "$HOME/.bun"
+    HOME        = '/var/jenkins_home'
+    BUN_INSTALL = "${HOME}/.bun"
+    BUN_BIN     = "${BUN_INSTALL}/bin"
+    PATH        = "${BUN_BIN}:${PATH}"
+
+    // Windows host mounts (ต้องแมปมาก่อน)
+    UAT_MOUNT  = '/mnt/uat'
+    PROD_MOUNT = '/mnt/prod'
+
+    // จะถูกตั้งค่าใน stage Init
+    TARGET_DIR = ''
+    BUILD_DIR  = ''
+    RELEASE_DIR = ''
   }
 
   stages {
-    // ถ้าใช้ "Pipeline script from SCM" จะมี Declarative: Checkout SCM ให้อยู่แล้ว
-    // สามารถลบ stage Checkout นี้ทิ้งได้ หรือคงไว้ก็ไม่ผิด
-    stage('Checkout') {
+    stage('Init') {
       steps {
-        checkout scm
+        script {
+          env.TARGET_DIR = (params.ENV == 'uat') ? env.UAT_MOUNT : env.PROD_MOUNT
+          env.RELEASE_DIR = "${env.TARGET_DIR}/releases/${env.BUILD_NUMBER}"
+          echo "Deploy target: ${env.TARGET_DIR}"
+        }
       }
     }
 
-    stage('Setup Bun & Build') {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Setup Bun (cached)') {
       steps {
         sh '''
           set -e
-
-          # ติดตั้ง bun ถ้ายังไม่มี
           if ! command -v bun >/dev/null 2>&1; then
             curl -fsSL https://bun.sh/install | bash
           fi
-
-          export BUN_INSTALL="$HOME/.bun"
-          export PATH="$BUN_INSTALL/bin:$PATH"
-
           bun --version
-
-          # ติดตั้ง dependencies
-          if [ -f bun.lockb ]; then
-            bun install --frozen-lockfile
-          else
-            bun install
-          fi
-
-          # สร้างไฟล์ build (สำหรับ Vite/CRA จะได้โฟลเดอร์ dist/)
-          # ถ้าใน package.json ไม่มีสคริปต์ build ให้ปรับคำสั่งตามโปรเจกต์จริง
-          bun run build
         '''
       }
     }
 
-    stage('Copy build to OUTPUT_DIR') {
+    stage('Install deps & Build') {
       steps {
         sh '''
           set -e
-          if [ ! -d "dist" ]; then
-            echo "❌ ไม่พบโฟลเดอร์ dist — โปรดเช็คว่าโปรเจกต์ของคุณ build ออกมาเป็น dist/ จริงหรือไม่"
-            echo "   ถ้าเป็น Next.js ต้องใช้คำสั่งอื่น (เช่น next build + next export -> out/)"
-            exit 1
+          if [ -f bun.lockb ]; then
+            bun install --frozen-lockfile --no-progress
+          else
+            bun install --no-progress
           fi
 
-          mkdir -p "$OUTPUT_DIR"
-          rm -rf "$OUTPUT_DIR"/* || true
-          cp -r dist/* "$OUTPUT_DIR"/
+          # ปรับตามโปรเจกต์ของคุณ: Vite/CRA -> dist, Next.js static -> out
+          bun run build
 
-          echo "✅ คัดลอกไฟล์แล้ว ไปที่: $OUTPUT_DIR"
+          if [ -d dist ]; then BUILD_DIR=dist
+          elif [ -d out ]; then BUILD_DIR=out
+          else
+            echo "No dist/ or out/ found"; exit 1
+          fi
+
+          echo "${BUILD_DIR}" > .builddir
+        '''
+      }
+    }
+
+    stage('Package Artifact') {
+      steps {
+        sh '''
+          set -e
+          BUILD_DIR=$(cat .builddir)
+          mkdir -p artifacts
+          tar -czf "artifacts/${JOB_NAME}-${params.ENV}-${BUILD_NUMBER}.tar.gz" -C "${BUILD_DIR}" .
+        '''
+        archiveArtifacts artifacts: 'artifacts/*.tar.gz', fingerprint: true
+      }
+    }
+
+    stage('Approve Production') {
+      when { expression { params.ENV == 'prod' } }
+      steps {
+        input message: 'ยืนยัน Deploy ไป Production ?', ok: 'Deploy'
+      }
+    }
+
+    stage('Deploy (copy to mounted folder)') {
+      steps {
+        sh '''
+          set -e
+          BUILD_DIR=$(cat .builddir)
+
+          # ตรวจว่า target mount อยู่จริง
+          if [ ! -d "${TARGET_DIR}" ]; then
+            echo "Target ${TARGET_DIR} not found (mount missing)."; exit 1
+          fi
+
+          # สร้าง releases/<build#> และ current
+          mkdir -p "${RELEASE_DIR}"
+          mkdir -p "${TARGET_DIR}/current"
+
+          # คัดลอกแบบสะอาด
+          rm -rf "${RELEASE_DIR:?}/"* || true
+          cp -a "${BUILD_DIR}/." "${RELEASE_DIR}/"
+
+          # อัปเดต current ให้เป็น build ล่าสุด (ไม่ใช้ symlink เพื่อให้ทำงานข้าม Windows mount)
+          rm -rf "${TARGET_DIR}/current/"* || true
+          cp -a "${RELEASE_DIR}/." "${TARGET_DIR}/current/"
+
+          echo "Deployed to ${TARGET_DIR}/current"
         '''
       }
     }
@@ -70,11 +129,12 @@ pipeline {
 
   post {
     success {
-      echo "✅ สำเร็จ! ไฟล์อยู่ในคอนเทนเนอร์ที่ ${env.OUTPUT_DIR}"
-      echo "💡 ถ้าแมพ /var/jenkins_home ไป E:/Learn/Deploy จะเห็นผลที่ E:\\Learn\\Deploy\\output"
+      echo "✅ ${params.ENV.toUpperCase()} deployed to ${env.TARGET_DIR}/current"
+      echo "ℹ️  Release snapshot: ${env.RELEASE_DIR}"
+      echo "📝 Notes: ${params.NOTES}"
     }
     failure {
-      echo "❌ ล้มเหลว — เปิด Console Output ดูขั้นที่ fail"
+      echo "❌ Deploy failed — check logs"
     }
   }
 }
