@@ -5,7 +5,7 @@ pipeline {
   environment {
     // โฟลเดอร์ปลายทางภายในคอนเทนเนอร์
     // บนเครื่องคุณจะเห็นที่ E:\Learn\Deploy\output ถ้าคุณแมพ jenkins_home มาที่ E:\Learn\Deploy
-    OUTPUT_DIR = 'E:\Learn\Deploy'
+    OUTPUT_DIR = 'E:/Learn/Deploy'
     BUN_BIN    = "$HOME/.bun/bin"
     BUN_INSTALL = "$HOME/.bun"
   }
